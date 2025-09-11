@@ -1,0 +1,184 @@
+---
+title: "Untitled"
+author: "Aime Muganga"
+date: "2025-03-13"
+output: html_document
+---
+
+
+```{r}
+library(queueing)
+
+lambda_rate <- 5  # Arrival rate
+mu_rate <- 3      # Service rate
+
+# Simulate M/M/c model for c in range 1 to 5
+for (c in 1:5) {
+  if (lambda_rate / (mu_rate * c) >= 1) {
+    print(paste("Skipping c =", c, "as system would be unstable."))
+  } else {
+    mmc_model <- QueueingModel(NewInput.MMC(lambda=lambda_rate, mu=mu_rate, c=c))
+    print(paste("Results for c =", c))
+    print(summary(mmc_model))  # Prints the key performance metrics
+    cat(rep("-", 40), "\n")
+  }
+}
+```
+
+```{r}
+library(queueing)
+lambda_rate <- 5  # Arrival rate
+mu_rate <- 7
+servers <- 1:5
+SU<-lambda_rate/(c*mu_rate)
+results <- data.frame(Servers=servers,L=NA, Wq=NA, SU=NA,ID=NA)
+
+for (c in servers){
+  MMC_input<-NewInput.MMC(lambda=lambda_rate,mu=mu_rate)
+  MMC_Model<-QueueingModel(MMC_input)
+  MMC_Model$L
+  results$L[results$Servers==c]<-MMC_Model$L
+  results$Wq[results$Servers==c]<-MMC_Model$Wq
+  results$SU[results$Servers==c]<-SU
+  results$ID[results$Servers==c]<-1-SU
+  
+}
+results
+
+```
+
+```{r}
+library(queueing)
+library(ggplot2)
+
+lambda_rate <- 5  # Arrival rate
+mu_rate <- 7      # Service rate
+servers <- 1:5
+
+# Create an empty dataframe
+results <- data.frame(Servers=servers, L=NA, Wq=NA, SU=NA, ID=NA)
+
+for (c in servers) {
+  # Compute server utilization inside the loop
+  SU <- lambda_rate / (c * mu_rate)
+  
+  # Ensure 'c' is passed correctly when defining the queueing model
+  MMC_input <- NewInput.MMC(lambda=lambda_rate, mu=mu_rate, c=c)
+  MMC_Model <- QueueingModel(MMC_input)
+  
+  # Store the results in the dataframe
+  results$L[results$Servers == c] <- MMC_Model$L
+  results$Wq[results$Servers == c] <- MMC_Model$Wq
+  results$SU[results$Servers == c] <- SU
+  results$ID[results$Servers == c] <- 1 - SU
+}
+
+# Plot c against L
+ggplot(results, aes(x=Servers, y=L)) + 
+  geom_line(color='blue') + 
+  geom_point(color='red') + 
+  labs(title='Queue Length (L) vs Number of Servers (c)', 
+       x='Number of Servers (c)', 
+       y='Queue Length (L)') + 
+  theme_minimal()
+
+# Plot c against Wq
+ggplot(results, aes(x=Servers, y=Wq)) + 
+  geom_line(color='green') + 
+  geom_point(color='orange') + 
+  labs(title='Waiting Time (Wq) vs Number of Servers (c)', 
+       x='Number of Servers (c)', 
+       y='Waiting Time (Wq)') + 
+  theme_minimal()
+
+# Plot c against SU (Service Utilization)
+ggplot(results, aes(x=Servers, y=SU)) + 
+  geom_line(color='purple') + 
+  geom_point(color='pink') + 
+  labs(title='Service Utilization (SU) vs Number of Servers (c)', 
+       x='Number of Servers (c)', 
+       y='Service Utilization (SU)') + 
+  theme_minimal()
+
+# Plot c against ID (Idle Time)
+ggplot(results, aes(x=Servers, y=ID)) + 
+  geom_line(color='brown') + 
+  geom_point(color='yellow') + 
+  labs(title='Idle Time (ID) vs Number of Servers (c)', 
+       x='Number of Servers (c)', 
+       y='Idle Time (ID)') + 
+  theme_minimal()
+
+# Print results
+print(results)
+
+```
+
+```{r}
+library(queueing)
+library(ggplot2)
+
+lambda_rate <- 5  # Arrival rate (per hour)
+mu_rate <- 7      # Service rate (per hour)
+time_period <- 10 # Simulation period in hours
+servers <- 1:5
+
+# Create an empty dataframe
+results <- data.frame(Servers=servers, Total_L=NA, Total_Wq=NA, SU=NA, ID=NA)
+
+for (c in servers) {
+  # Compute server utilization inside the loop
+  SU <- lambda_rate / (c * mu_rate)
+  
+  # Ensure 'c' is passed correctly when defining the queueing model
+  MMC_input <- NewInput.MMC(lambda=lambda_rate, mu=mu_rate, c=c)
+  MMC_Model <- QueueingModel(MMC_input)
+  
+  # Store the results in the dataframe
+  results$Total_L[results$Servers == c] <- MMC_Model$L * time_period  # Accumulated customers over 10 hours
+  results$Total_Wq[results$Servers == c] <- MMC_Model$Wq * (lambda_rate * time_period)  # Total waiting time
+  results$SU[results$Servers == c] <- SU
+  results$ID[results$Servers == c] <- 1 - SU
+}
+
+# Plot c against Total_L
+ggplot(results, aes(x=Servers, y=Total_L)) + 
+  geom_line(color='blue') + 
+  geom_point(color='red') + 
+  labs(title='Total Queue Length over 10 Hours vs Number of Servers', 
+       x='Number of Servers (c)', 
+       y='Total Queue Length (L * 10)') + 
+  theme_minimal()
+
+# Plot c against Total_Wq
+ggplot(results, aes(x=Servers, y=Total_Wq)) + 
+  geom_line(color='green') + 
+  geom_point(color='orange') + 
+  labs(title='Total Waiting Time over 10 Hours vs Number of Servers', 
+       x='Number of Servers (c)', 
+       y='Total Waiting Time (Wq * 50)') + 
+  theme_minimal()
+
+# Plot c against SU (Service Utilization)
+ggplot(results, aes(x=Servers, y=SU)) + 
+  geom_line(color='purple') + 
+  geom_point(color='pink') + 
+  labs(title='Service Utilization vs Number of Servers', 
+       x='Number of Servers (c)', 
+       y='Service Utilization (SU)') + 
+  theme_minimal()
+
+# Plot c against ID (Idle Time)
+ggplot(results, aes(x=Servers, y=ID)) + 
+  geom_line(color='brown') + 
+  geom_point(color='yellow') + 
+  labs(title='Idle Time vs Number of Servers', 
+       x='Number of Servers (c)', 
+       y='Idle Time (ID)') + 
+  theme_minimal()
+
+# Print results
+print(results)
+
+```
+
