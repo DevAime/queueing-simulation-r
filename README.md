@@ -1,2 +1,3 @@
-# queueing-simulation-r
-R code for simulating basic queueing systems, including customer arrivals, service times, and waiting times.
+# Queueing Simulation in R
+
+This repository contains R code for simulating **queueing systems**. 
